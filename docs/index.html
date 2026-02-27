@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>PolyLoop‑BO | Interactive Electrospinning Predictor</title>
+  <link rel="stylesheet" href="assets/style.css"/>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <h1>PolyLoop‑BO</h1>
+        <p>
+          Live, browser‑side demo: tune electrospinning formulation + process parameters and predict morphology & biofunction.
+          Includes a “suggest next experiment” button to mimic closed‑loop optimisation.
+        </p>
+        <p class="muted">
+          Repo: <a id="repoLink" href="#">https://github.com/&lt;your-username&gt;/polyloop-bo</a>
+        </p>
+
+        <div class="stats" aria-label="dataset statistics">
+          <div class="stat"><div class="num" id="statN">—</div><div class="lbl">Experiments</div></div>
+          <div class="stat"><div class="num">10</div><div class="lbl">Inputs</div></div>
+          <div class="stat"><div class="num">5</div><div class="lbl">Outputs</div></div>
+          <div class="stat"><div class="num" id="statR2">—</div><div class="lbl">Median R² (test)</div></div>
+        </div>
+
+        <div class="nav">
+          <a href="#predictor">⚡ Predictor</a>
+          <a href="#dataset">Material database</a>
+          <a href="#about">About</a>
+        </div>
+      </div>
+
+      <div class="badges">
+        <div class="badge">Bayesian Optimisation</div>
+        <div class="badge">Electrospinning</div>
+        <div class="badge">Vision Characterisation</div>
+        <div class="badge">Text Priors</div>
+      </div>
+    </div>
+
+    <div id="predictor" class="card">
+      <h2>Performance Predictor</h2>
+      <p class="muted">
+        This page loads a lightweight ridge-regression surrogate (trained on the repo’s synthetic dataset)
+        and runs inference locally in your browser (no server).
+      </p>
+
+      <div class="grid2">
+        <div class="panel">
+          <h3 style="margin:0 0 6px">Formulation</h3>
+
+          <div class="control">
+            <label for="gelatin_wt_pct">Gelatin (wt%) <span class="val" id="gelatin_wt_pct_val">—</span></label>
+            <input type="range" id="gelatin_wt_pct" />
+          </div>
+
+          <div class="control">
+            <label for="wpu_wt_pct">Waterborne polyurethane, WPU (wt%) <span class="val" id="wpu_wt_pct_val">—</span></label>
+            <input type="range" id="wpu_wt_pct" />
+          </div>
+
+          <div class="control">
+            <label for="pei_wt_pct">Poly(ethylene imine), PEI (wt%) <span class="val" id="pei_wt_pct_val">—</span></label>
+            <input type="range" id="pei_wt_pct" />
+          </div>
+
+          <div class="control">
+            <label for="peox_wt_pct">Poly(2‑ethyl‑2‑oxazoline), PEOx (wt%) <span class="val" id="peox_wt_pct_val">—</span></label>
+            <input type="range" id="peox_wt_pct" />
+          </div>
+
+          <div class="control">
+            <label for="allantoin_wt_pct">Allantoin (wt%) <span class="val" id="allantoin_wt_pct_val">—</span></label>
+            <input type="range" id="allantoin_wt_pct" />
+          </div>
+
+          <div class="control">
+            <label for="hyaluronic_acid_wt_pct">Hyaluronic acid (wt%) <span class="val" id="hyaluronic_acid_wt_pct_val">—</span></label>
+            <input type="range" id="hyaluronic_acid_wt_pct" />
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3 style="margin:0 0 6px">Process</h3>
+
+          <div class="control">
+            <label for="voltage_kV">Voltage (kV) <span class="val" id="voltage_kV_val">—</span></label>
+            <input type="range" id="voltage_kV" />
+          </div>
+
+          <div class="control">
+            <label for="flow_rate_mL_h">Flow rate (mL/h) <span class="val" id="flow_rate_mL_h_val">—</span></label>
+            <input type="range" id="flow_rate_mL_h" />
+          </div>
+
+          <div class="control">
+            <label for="tip_to_collector_cm">Tip‑to‑collector distance (cm) <span class="val" id="tip_to_collector_cm_val">—</span></label>
+            <input type="range" id="tip_to_collector_cm" />
+          </div>
+
+          <div class="control">
+            <label for="humidity_pct">Relative humidity (%) <span class="val" id="humidity_pct_val">—</span></label>
+            <input type="range" id="humidity_pct" />
+          </div>
+
+          <div class="actions">
+            <button id="predictBtn">Predict</button>
+            <button id="suggestBtn">Suggest next experiment</button>
+            <button id="resetBtn" class="secondary">Reset</button>
+          </div>
+
+          <div class="modelinfo" id="modelInfo">Loading model…</div>
+        </div>
+      </div>
+
+      <div class="outputs" aria-label="predicted outputs">
+        <div class="outCard">
+          <div class="outName">Fibre diameter</div>
+          <div class="outVal" id="out_fiber_diameter_nm">—</div>
+          <div class="outUnit">nm</div>
+        </div>
+        <div class="outCard">
+          <div class="outName">Bead index</div>
+          <div class="outVal" id="out_bead_index">—</div>
+          <div class="outUnit">0–1</div>
+        </div>
+        <div class="outCard">
+          <div class="outName">Contact angle</div>
+          <div class="outVal" id="out_contact_angle_deg">—</div>
+          <div class="outUnit">deg</div>
+        </div>
+        <div class="outCard">
+          <div class="outName">Zone of inhibition</div>
+          <div class="outVal" id="out_zone_inhibition_mm">—</div>
+          <div class="outUnit">mm</div>
+        </div>
+        <div class="outCard">
+          <div class="outName">Cell viability</div>
+          <div class="outVal" id="out_cell_viability_pct">—</div>
+          <div class="outUnit">%</div>
+        </div>
+      </div>
+
+      <p class="muted" style="margin-top:12px">
+        Tip: click <b>Suggest next experiment</b> to let the demo optimiser propose a candidate that increases antimicrobial activity and viability while reducing bead formation.
+      </p>
+    </div>
+
+    <div id="dataset" class="card">
+      <h2>Experiment database</h2>
+      <p class="muted">
+        Browse the bundled dataset used to train the demo surrogate. (It is synthetic—meant to prove the workflow and UI.)
+      </p>
+
+      <div class="search">
+        <input id="filterInput" type="text" placeholder="Filter by experiment_id (e.g., EXP-010)…"/>
+        <button id="filterBtn" class="secondary">Filter</button>
+        <button id="clearBtn" class="secondary">Clear</button>
+      </div>
+
+      <div class="table-wrap">
+        <table id="expTable">
+          <thead>
+            <tr>
+              <th>experiment_id</th>
+              <th>gelatin</th>
+              <th>WPU</th>
+              <th>PEI</th>
+              <th>PEOx</th>
+              <th>Allantoin</th>
+              <th>HA</th>
+              <th>V (kV)</th>
+              <th>Flow</th>
+              <th>Dist</th>
+              <th>RH</th>
+              <th>Diameter</th>
+              <th>Beads</th>
+              <th>CA</th>
+              <th>ZOI</th>
+              <th>Viability</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <p class="muted" style="margin-top:10px">
+        You can download the raw JSON used on this page: <a href="assets/experiments.json">experiments.json</a>
+      </p>
+    </div>
+
+    <div id="about" class="card">
+      <h2>About</h2>
+      <p class="muted">
+        This GitHub Pages demo is intentionally “deploy‑anywhere”: it runs a small surrogate model in the browser so a hiring panel can click a link and immediately understand the workflow.
+      </p>
+      <ul>
+        <li><b>Research translation:</b> swap the synthetic dataset for real electrospinning + characterisation results (SEM/optical, contact angle, microbiology, cytotoxicity).</li>
+        <li><b>Closed loop:</b> connect the optimiser’s suggestions to an automated electrospinning/measurement pipeline (robotics or scripted protocols).</li>
+        <li><b>Human & literature priors:</b> constrain the space using retrieved snippets (solvent windows, concentration limits, feasibility rules).</li>
+      </ul>
+      <p class="muted">
+        Enable GitHub Pages: <span class="code">Settings → Pages → Deploy from branch → /docs</span>.
+      </p>
+    </div>
+
+    <div class="footer">
+      <p class="muted">MIT license. See <span class="code">CITATION.cff</span> for how to cite this software.</p>
+    </div>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

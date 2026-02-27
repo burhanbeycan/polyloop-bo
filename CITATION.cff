@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software (code, datasets, or figures), please cite it."
+title: "PolyLoop-BO: Closed-loop electrospinning optimisation (Bayesian optimisation + fibre vision + text priors)"
+type: software
+authors:
+  - family-names: "Beycan"
+    given-names: "Burhan"
+date-released: "2026-02-27"
+repository-code: "https://github.com/<your-username>/polyloop-bo"
+license: MIT
+keywords:
+  - Bayesian optimisation
+  - active learning
+  - electrospinning
+  - polymer coatings
+  - computer vision
+  - closed-loop experimentation
